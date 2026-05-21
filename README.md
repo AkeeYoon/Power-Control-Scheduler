@@ -14,7 +14,7 @@ A smart, network-based remote power management solution designed to monitor and 
 
 ### 📥 Direct Download (Release Version)
 You can download the pre-compiled executable files and use them immediately without setting up a development environment:
-- **[👉 Download PowerCtrl.zip (Latest Release)](https://github.com/AkeeYoon/PowerControl/releases/latest/download/PowerCtrl.zip)**
+- **[👉 Download PowerCtrl.zip (Latest Release)](https://github.com/AkeeYoon/Power-Control-Scheduler/releases/latest/download/PowerCtrl.zip)**
 > 💡 **Tip:** If you haven't created a GitHub Release yet, you can build the binaries yourself using the instructions below.
 
 ---
@@ -43,8 +43,8 @@ Power Control System is a utility for AV engineers and network administrators to
 ### Installation
 ```bash
 # Clone the repository
-git clone https://github.com/AkeeYoon/PowerControl.git
-cd PowerControl
+git clone https://github.com/AkeeYoon/Power-Control-Scheduler.git
+cd Power-Control-Scheduler
 
 # Install the go-winres package for Windows icons (Optional)
 go install github.com/tc-hib/go-winres@latest
@@ -89,7 +89,7 @@ This project is licensed under the [MIT License](LICENSE).
 
 ### 📥 릴리즈 버전 즉시 다운로드 (Release Version)
 복잡한 개발 환경 구성 없이, 컴파일이 완료된 실행 파일 압축본을 다운로드하여 즉시 사용할 수 있습니다:
-- **[👉 PowerCtrl.zip 다운로드 (최신 릴리즈)](https://github.com/AkeeYoon/PowerControl/releases/latest/download/PowerCtrl.zip)**
+- **[👉 PowerCtrl.zip 다운로드 (최신 릴리즈)](https://github.com/AkeeYoon/Power-Control-Scheduler/releases/latest/download/PowerCtrl.zip)**
 > 💡 **팁:** 아직 GitHub Release를 등록하지 않으셨다면, 하단의 빌드 설명서를 참고하여 소스코드에서 직접 빌드할 수 있습니다.
 
 ---
@@ -118,8 +118,8 @@ Power Control System은 AV 엔지니어 및 시스템 관리자가 네트워크 
 ### 설치 명령어
 ```bash
 # 저장소 클론
-git clone https://github.com/AkeeYoon/PowerControl.git
-cd PowerControl
+git clone https://github.com/AkeeYoon/Power-Control-Scheduler.git
+cd Power-Control-Scheduler
 
 # 윈도우 아이콘 리소스 빌드를 위한 go-winres 패키지 설치 (선택)
 go install github.com/tc-hib/go-winres@latest
