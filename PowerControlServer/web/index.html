@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerCtrl - 장비 전원 제어 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <link rel="icon" href="icon.png" type="image/png">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <img src="icon.png" alt="logo" style="width: 28px; height: 28px; object-fit: contain; border-radius: 4px;">
+                <span>PowerCtrl</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard"><i class="ri-dashboard-line"></i> 대시보드</a>
+                <a href="#" class="nav-item" data-page="computers"><i class="ri-computer-line"></i> 컴퓨터 관리</a>
+                <a href="#" class="nav-item" data-page="projectors"><i class="ri-projector-line"></i> 프로젝터 관리</a>
+                <a href="#" class="nav-item" data-page="schedule"><i class="ri-calendar-event-line"></i> 스케줄 설정</a>
+                <a href="#" class="nav-item" data-page="settings"><i class="ri-settings-4-line"></i> 환경 설정</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page-section active">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">대시보드</h1>
+                        <p class="page-subtitle">모든 장비의 전원 상태를 한눈에 모니터링하세요.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="btn-scan" class="btn btn-outline"
+                            style="color: var(--text-primary); border-color: var(--border-color);"
+                            onclick="scanDevices()">
+                            <i class="ri-refresh-line"></i> 현재 상태 스캔
+                        </button>
+                        <button class="btn btn-primary" onclick="toggleAllPower(true)"><i class="ri-power-line"></i> 일괄
+                            켜기</button>
+                        <button class="btn btn-danger" onclick="toggleAllPower(false)"><i class="ri-shut-down-line"></i>
+                            일괄 끄기</button>
+                    </div>
+                </header>
+
+                <!-- Stats -->
+                <section class="stats-grid">
+                    <div class="stat-card" onclick="navigateToType('pc')" style="cursor: pointer;">
+                        <div class="stat-icon pc"><i class="ri-computer-fill"></i></div>
+                        <div class="stat-info">
+                            <h3>작동 중인 컴퓨터</h3>
+                            <p class="stat-value" id="stat-pc-val">0 <span class="stat-total" id="stat-pc-total">/
+                                    0</span></p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="navigateToType('projector')" style="cursor: pointer;">
+                        <div class="stat-icon projector"><i class="ri-projector-fill"></i></div>
+                        <div class="stat-info">
+                            <h3>작동 중인 프로젝터</h3>
+                            <p class="stat-value" id="stat-pj-val">0 <span class="stat-total" id="stat-pj-total">/
+                                    0</span></p>
+                        </div>
+                    </div>
+
+                    <!-- New Schedule Summary Card -->
+                    <div class="stat-card schedule-summary-card"
+                        onclick="document.querySelector('[data-page=schedule]').click()" style="cursor: pointer;">
+                        <div class="stat-icon energy"
+                            style="background-color: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i
+                                class="ri-calendar-check-fill"></i></div>
+                        <div class="stat-info" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <h3>오늘의 스케줄</h3>
+                                <span id="stat-sch-active" class="badge badge-active"
+                                    style="font-size: 0.65rem; display: none;"></span>
+                            </div>
+                            <div class="next-event"
+                                style="margin-top: 0.5rem; background: var(--card-hover); padding: 0.5rem; border-radius: 0.375rem; border: 1px solid var(--border-color);">
+                                <div id="stat-sch-next-label"
+                                    style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                                    다가오는 일정 없음</div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <strong id="stat-sch-next-name" style="font-size: 0.9rem;">-</strong>
+                                    <span id="stat-sch-next-time"
+                                        style="color: var(--danger-color); font-weight: 600; font-size: 0.9rem;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Device Controls Options -->
+                <div class="view-controls" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="view-tabs">
+                        <button class="view-tab active" onclick="switchView('room')"><i class="ri-layout-grid-fill"></i>
+                            콘텐츠별 보기</button>
+                        <button class="view-tab" onclick="switchView('type')"><i class="ri-list-check"></i> 장비 종류별
+                            보기</button>
+                    </div>
+                </div>
+
+                <!-- Device List Container -->
+                <div id="dashboard-content">
+                    <!-- Content will be injected by JS depending on the selected view -->
+                </div>
+            </div>
+
+            <!-- Computers Page -->
+            <div id="page-computers" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">컴퓨터 관리</h1>
+                        <p class="page-subtitle">네트워크에 연결된 PC 장비들을 상세 조회하고 관리합니다.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-danger"
+                            onclick="if(confirm('모든 PC 장비를 정말 삭제하시겠습니까? 관련 스케줄 등에서 오류가 발생할 수 있습니다.')) deleteAllDevices('pc');"><i
+                                class="ri-delete-bin-line"></i> 전체 지우기</button>
+                        <button class="btn btn-primary" onclick="openDeviceModal('pc')"><i class="ri-add-line"></i> PC
+                            수동 등록</button>
+                    </div>
+                </header>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>상태</th>
+                                <th>PC 이름</th>
+                                <th>할당 콘텐츠</th>
+                                <th>IP 주소</th>
+                                <th>MAC 주소</th>
+                                <th>WOL 지원</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Projectors Page -->
+            <div id="page-projectors" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">프로젝터 관리</h1>
+                        <p class="page-subtitle">PJLink 기반 프로젝터 장비의 상태와 포트 정보를 관리합니다.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-danger"
+                            onclick="if(confirm('모든 프로젝터 장비를 정말 삭제하시겠습니까? 관련 스케줄 등에서 오류가 발생할 수 있습니다.')) deleteAllDevices('projector');"><i
+                                class="ri-delete-bin-line"></i> 전체 지우기</button>
+                        <button class="btn btn-primary" onclick="openDeviceModal('projector')"><i
+                                class="ri-add-line"></i> 프로젝터 등록</button>
+                    </div>
+                </header>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>상태</th>
+                                <th>프로젝터 이름</th>
+                                <th>할당 콘텐츠</th>
+                                <th>API / 통신 IP</th>
+                                <th>PJLink 포트</th>
+                                <th>램프 상태</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="page-schedule" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">콘텐츠 스케줄 관리</h1>
+                        <p class="page-subtitle">콘텐츠별로 운영 시간을 설정하면 장비 특성에 맞춰 자동 전원 제어가 실행됩니다.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openScheduleModal()"><i class="ri-add-line"></i> 새 스케줄
+                        등록</button>
+                </header>
+
+                <div class="schedule-grid" id="scheduleGrid">
+                    <!-- Schedule Cards will be injected dynamically -->
+                </div>
+            </div>
+
+            <div id="page-settings" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">환경 설정</h1>
+                        <p class="page-subtitle">시스템 네트워크, API 포트 및 데이터베이스 설정을 관리합니다.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-outline" style="color: var(--text-secondary);"
+                            onclick="resetSettings()"><i class="ri-refresh-line"></i> 초기화</button>
+                        <button class="btn btn-primary" onclick="saveSettings()"><i class="ri-save-line"></i> 설정
+                            저장</button>
+                    </div>
+                </header>
+
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h3><i class="ri-server-line"></i> 서버 네트워크 설정</h3>
+                        </div>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>기본 브로드캐스트 IP (WOL 타겟)</label>
+                                <input type="text" id="settingsBroadcastIp" class="form-input" value="192.168.1.255">
+                                <span class="form-hint">네트워크 서브넷 브로드캐스트 주소를 입력하세요.</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Ping 테스트 주기</label>
+                                <select class="form-select">
+                                    <option>30초</option>
+                                    <option selected>1분</option>
+                                    <option>5분</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>기본 PJLink 암호</label>
+                                <input type="password" class="form-input" value="12345678">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h3><i class="ri-database-2-line"></i> 데이터베이스 & 시스템</h3>
+                        </div>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>DB 파일 경로</label>
+                                <input type="text" class="form-input" value="./database/powerctrl.sqlite3" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>API 수신 포트</label>
+                                <input type="number" id="settingsApiPort" class="form-input" value="3000">
+                            </div>
+                            <div class="form-group"
+                                style="flex-direction: row; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <label style="margin-bottom: 0;">스케줄러 활성화</label>
+                                    <span class="form-hint">서버의 자동 동작 시스템을 켭니다.</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="globalSchedulerToggle" onchange="toggleGlobalScheduler(this.checked)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h3><i class="ri-brush-line"></i> 화면 & UI 설정</h3>
+                        </div>
+                        <div class="settings-form">
+                            <div class="form-group"
+                                style="flex-direction: row; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <label style="margin-bottom: 0;">다크 모드 (Dark Mode)</label>
+                                    <span class="form-hint">어두운 화면 테마를 사용합니다.</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="themeToggle" onchange="toggleTheme(this.checked)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <!-- Device Edit/Add Modal -->
+    <div id="deviceModal" class="modal"
+        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content"
+            style="background-color: var(--card-bg); margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 500px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="modalTitle" style="color: var(--text-color);">장비 추가/수정</h2>
+                <span class="close" onclick="closeDeviceModal()"
+                    style="color: var(--text-secondary); font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            </div>
+            <form id="deviceForm" onsubmit="saveDevice(event)">
+                <input type="hidden" id="deviceId">
+                <input type="hidden" id="deviceType">
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">장비 이름</label>
+                    <input type="text" id="deviceName" class="form-input" required
+                        style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">할당 콘텐츠 (방)</label>
+                    <select id="deviceRoom" class="form-select" style="width: 100%; box-sizing: border-box;">
+                        <!-- Options dynamically injected from schedules -->
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">IP 주소</label>
+                    <input type="text" id="deviceIp" class="form-input" required
+                        style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" id="macInputGroup" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">MAC 주소 / 포트</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="deviceMac" class="form-input" required
+                            style="flex: 1; box-sizing: border-box;">
+                        <button type="button" class="btn btn-outline" onclick="findMac()"
+                            style="white-space: nowrap; padding: 0.5rem 0.75rem;"><i class="ri-search-line"></i>
+                            검색</button>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; display: block;">*
+                        IP 입력 후 포커스를 벗어나면 자동으로 MAC을 검색합니다. 수동 검색도 가능합니다.</span>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeDeviceModal()"
+                        style="color: var(--text-secondary);">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Schedule Modal -->
+    <div id="scheduleModal" class="modal"
+        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content"
+            style="background-color: var(--card-bg); margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 400px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: var(--text-color);">새 콘텐츠(실) 스케줄 추가</h2>
+                <span class="close" onclick="closeScheduleModal()"
+                    style="color: var(--text-secondary); font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            </div>
+            <form id="scheduleForm" onsubmit="createSchedule(event)">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">콘텐츠 (방) 이름</label>
+                    <input type="text" id="newScheduleName" class="form-input" required placeholder="예: 3 강의실 - 특별반"
+                        style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeScheduleModal()"
+                        style="color: var(--text-secondary);">취소</button>
+                    <button type="submit" class="btn btn-primary">추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" data-page="dashboard"><i class="ri-dashboard-line"></i><span>대시보드</span></a>
+        <a href="#" class="nav-item" data-page="computers"><i class="ri-computer-line"></i><span>컴퓨터</span></a>
+        <a href="#" class="nav-item" data-page="projectors"><i class="ri-projector-line"></i><span>프로젝터</span></a>
+        <a href="#" class="nav-item" data-page="schedule"><i class="ri-calendar-event-line"></i><span>스케줄</span></a>
+        <a href="#" class="nav-item" data-page="settings"><i class="ri-settings-4-line"></i><span>설정</span></a>
+    </nav>
+
+    <script src="app.js?v=2"></script>
+</body>
+
+</html>

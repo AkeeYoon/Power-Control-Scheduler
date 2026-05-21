@@ -1,0 +1,2539 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PowerCtrl - 장비 전원 제어 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+:root {
+    --bg-color: #f8fafc;
+    /* Light grey background */
+    --sidebar-bg: #ffffff;
+    /* Pure white cards/sidebar */
+    --card-bg: #ffffff;
+    /* Pure white cards */
+    --card-hover: #f1f5f9;
+    /* Slight grey on hover */
+    --text-primary: #0f172a;
+    /* Nearly black text */
+    --text-secondary: #64748b;
+    /* Muted slate grey text */
+    --accent-color: #3b82f6;
+    /* Bright Blue accent */
+    --accent-hover: #2563eb;
+    /* Darker blue hover */
+    --success-color: #10b981;
+    /* Green */
+    --success-bg: rgba(16, 185, 129, 0.1);
+    /* Very light green tint */
+    --danger-color: #ef4444;
+    /* Red */
+    --danger-bg: rgba(239, 68, 68, 0.1);
+    /* Very light red tint */
+    --border-color: #e2e8f0;
+    /* Soft grey border */
+    --glass-border: #f1f5f9;
+    /* Lighter grey for inner borders */
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+    --bg-color: #0f111a;
+    --sidebar-bg: #161925;
+    --card-bg: #1c2030;
+    --card-hover: #23283c;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --accent-color: #3b82f6;
+    --accent-hover: #2563eb;
+    --success-color: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.15);
+    --danger-color: #ef4444;
+    --danger-bg: rgba(239, 68, 68, 0.15);
+    --border-color: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+.app-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1.5rem 2rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.logo i {
+    color: var(--accent-color);
+    font-size: 1.5rem;
+    text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+.nav-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0 1rem;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.nav-item i {
+    font-size: 1.25rem;
+}
+
+.nav-item:hover {
+    color: var(--text-primary);
+    background-color: var(--card-bg);
+}
+
+.nav-item.active {
+    color: #fff;
+    background-color: var(--accent-color);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.bottom-nav {
+    display: none;
+    /* Hidden by default on desktop */
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    padding: 2rem 2.5rem;
+    overflow-y: auto;
+}
+
+.page-section {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.page-section.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.placeholder-content {
+    background-color: var(--card-bg);
+    border: 1px dashed var(--border-color);
+    border-radius: 1rem;
+    padding: 4rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* View Controls */
+.view-controls {
+    margin-bottom: 1.5rem;
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.view-tabs {
+    display: flex;
+    gap: 1rem;
+}
+
+.view-tab {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: inherit;
+}
+
+.view-tab:hover {
+    color: var(--text-primary);
+}
+
+.view-tab.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2.5rem;
+}
+
+.page-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    cursor: pointer;
+    border: none;
+    transition: var(--transition);
+    font-family: inherit;
+}
+
+.btn i {
+    font-size: 1.125rem;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-hover);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.btn-danger {
+    background-color: transparent;
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+}
+
+.btn-danger:hover {
+    background-color: var(--danger-bg);
+}
+
+.btn-sm {
+    padding: 0.4rem 0.875rem;
+    font-size: 0.875rem;
+    background-color: var(--card-hover);
+    color: var(--text-primary);
+}
+
+.btn-sm:hover {
+    background-color: var(--accent-color);
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Stats */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.stat-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.stat-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.75rem;
+}
+
+.stat-icon.pc {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+}
+
+.stat-icon.projector {
+    background-color: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+}
+
+.stat-icon.energy {
+    background-color: var(--success-bg);
+    color: var(--success-color);
+}
+
+.stat-info h3 {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.stat-total,
+.stat-unit {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Device Section */
+.device-section {
+    margin-bottom: 3rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.section-header h2 i {
+    color: var(--text-secondary);
+}
+
+.room-schedule-badge {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background-color: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.375rem;
+    margin-left: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.room-schedule-badge i {
+    font-size: 0.875rem;
+    color: var(--accent-color);
+}
+
+.room-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.device-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.device-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.device-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: var(--shadow-md);
+}
+
+/* Status Indicator (Pulse) */
+.status-dot {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+    background-color: var(--danger-color);
+    box-shadow: 0 0 8px var(--danger-color);
+    transition: var(--transition);
+}
+
+.device-card.is-on .status-dot {
+    background-color: var(--success-color);
+    box-shadow: 0 0 10px var(--success-color);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+.device-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.device-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.device-card.is-on .device-icon {
+    background-color: var(--accent-color);
+    color: white;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.device-card.is-on .device-icon.projector-type {
+    background-color: #8b5cf6;
+    /* purple for projector */
+    box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+}
+
+.device-title h4 {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.device-title span {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.device-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-val {
+    color: var(--text-primary);
+    font-family: monospace;
+}
+
+.device-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.control-btn {
+    flex: 1;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-on {
+    background-color: var(--card-hover);
+    color: var(--text-primary);
+}
+
+.btn-on:hover {
+    background-color: var(--success-bg);
+    color: var(--success-color);
+}
+
+.btn-off {
+    background-color: var(--card-hover);
+    color: var(--text-primary);
+}
+
+.btn-off:hover {
+    background-color: var(--danger-bg);
+    color: var(--danger-color);
+}
+
+.device-card.is-on .btn-on {
+    background-color: var(--success-color);
+    color: white;
+    pointer-events: none;
+}
+
+.device-card:not(.is-on) .btn-off {
+    background-color: var(--danger-color);
+    color: white;
+    pointer-events: none;
+}
+
+/* Schedule UI */
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.schedule-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}
+
+.schedule-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.schedule-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.schedule-title h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.badge-active {
+    background-color: var(--success-bg);
+    color: var(--success-color);
+}
+
+/* Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #374151;
+    transition: .4s;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+}
+
+input:checked+.slider {
+    background-color: var(--success-color);
+}
+
+input:checked+.slider:before {
+    transform: translateX(20px);
+}
+
+.slider.round {
+    border-radius: 24px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
+.schedule-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.setting-group {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.5rem;
+    padding: 1rem;
+}
+
+.setting-label {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.time-inputs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.time-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.time-field span {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.time-picker {
+    background-color: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.time-picker::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.time-divider {
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    margin-top: 1rem;
+}
+
+.sequence-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--sidebar-bg);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    border: 1px solid var(--glass-border);
+}
+
+.step-badge {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.25rem;
+    text-align: center;
+    flex: 1;
+}
+
+.projector-step {
+    background-color: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.pc-step {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.step-delay {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.delay-input-sm {
+    width: 44px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.2rem;
+    border-radius: 0.25rem;
+    text-align: center;
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+
+.schedule-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border-color);
+    padding-top: 1rem;
+}
+
+.schedule-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+/* Data Tables (Computers & Projectors) */
+.data-table-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    overflow-x: auto;
+    box-shadow: var(--shadow-sm);
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.data-table tbody tr {
+    transition: var(--transition);
+}
+
+.data-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.status-indicator {
+    display: inline-block;
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+
+.status-on {
+    background-color: var(--success-color);
+    box-shadow: 0 0 8px var(--success-color);
+}
+
+.status-off {
+    background-color: var(--danger-color);
+}
+
+.mono-text {
+    font-family: monospace;
+    color: var(--text-secondary);
+}
+
+.badge-success {
+    background-color: var(--success-bg);
+    color: var(--success-color);
+}
+
+.badge-warning {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.125rem;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: var(--transition);
+}
+
+.btn-icon:hover {
+    color: var(--text-primary);
+}
+
+.text-danger:hover {
+    color: var(--danger-color);
+}
+
+/* Settings Form */
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+.settings-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-card-header h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.settings-form {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-hint {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.form-input,
+.form-select {
+    background-color: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-family: inherit;
+    font-size: 0.9375rem;
+    transition: var(--transition);
+}
+
+.form-input:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.form-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .app-container {
+        flex-direction: column;
+    }
+
+    /* Hide desktop sidebar */
+    .sidebar {
+        display: none;
+    }
+
+    /* Show bottom navigation */
+    .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: var(--sidebar-bg);
+        border-top: 1px solid var(--border-color);
+        z-index: 1000;
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.2);
+        padding: 0.5rem 0.5rem 1.5rem;
+        /* Extra padding for modern phones */
+    }
+
+    .bottom-nav .nav-item {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.25rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        padding: 0.5rem 0;
+        border-radius: 0.5rem;
+        transition: var(--transition);
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .bottom-nav .nav-item i {
+        font-size: 1.5rem;
+        margin-bottom: 2px;
+    }
+
+    .bottom-nav .nav-item.active {
+        color: var(--accent-color);
+        background-color: transparent;
+        box-shadow: none;
+    }
+
+    .bottom-nav .nav-item.active i {
+        text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+
+    /* Adjust main content for bottom nav */
+    .main-content {
+        padding: 1rem;
+        padding-bottom: 90px;
+    }
+
+    .top-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .schedule-summary-card {
+        grid-column: 1 / -1;
+    }
+
+    .device-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Mobile-specific device card tweaks */
+    .device-card {
+        padding: 1rem;
+    }
+
+    .device-header {
+        margin-bottom: 0.75rem;
+    }
+
+    .device-icon i {
+        font-size: 1.5rem;
+    }
+
+    /* Make master controls more visible on mobile */
+    .header-actions {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+
+    .header-actions #btn-scan {
+        grid-column: 1 / -1;
+    }
+
+    .schedule-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 1.5rem;
+    }
+
+    .view-controls {
+        flex-direction: column;
+        align-items: stretch !important;
+        margin-top: 1rem;
+    }
+
+    .view-tabs {
+        width: 100%;
+        display: flex;
+    }
+
+    .view-tab {
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+    }
+
+    /* Data Table to Mobile List View Conversion */
+    .data-table-container {
+        border-radius: 0;
+        border: none;
+        background: transparent;
+    }
+
+    .data-table,
+    .data-table thead,
+    .data-table tbody,
+    .data-table th,
+    .data-table td,
+    .data-table tr {
+        display: block;
+    }
+
+    .data-table thead {
+        display: none;
+        /* Hide table headers completely */
+    }
+
+    .data-table tr {
+        background-color: var(--card-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 0.75rem;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .data-table td {
+        border: none;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Status circle */
+    .data-table td:nth-child(1) {
+        position: absolute;
+        top: 1.25rem;
+        left: 1rem;
+    }
+
+    /* Device Name */
+    .data-table td:nth-child(2) {
+        font-weight: 600;
+        font-size: 1.1rem;
+        padding-left: 1.5rem;
+    }
+
+    /* Room Name */
+    .data-table td:nth-child(3) {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        padding-left: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Hide IP, MAC, and WOL Support columns on mobile */
+    .data-table td:nth-child(4),
+    .data-table td:nth-child(5),
+    .data-table td:nth-child(6) {
+        display: none;
+    }
+
+    /* Action Buttons (Edit, Delete) */
+    .data-table td:last-child {
+        justify-content: flex-end;
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border-color);
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+
+    /* Schedule Mobile Layout Fixes */
+    .time-inputs {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .time-divider {
+        display: none;
+        /* Hide the divider in vertical layout */
+    }
+
+    .time-field {
+        width: 100%;
+    }
+
+    .time-picker {
+        width: 100%;
+        text-align: center;
+    }
+
+    .sequence-box {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    .step-badge {
+        width: 100%;
+    }
+
+    .step-delay {
+        justify-content: center;
+        width: 100%;
+        padding: 0.5rem 0;
+    }
+}
+</style>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="ri-flashlight-fill"></i>
+                <span>PowerCtrl</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard"><i class="ri-dashboard-line"></i> 대시보드</a>
+                <a href="#" class="nav-item" data-page="computers"><i class="ri-computer-line"></i> 컴퓨터 관리</a>
+                <a href="#" class="nav-item" data-page="projectors"><i class="ri-projector-line"></i> 프로젝터 관리</a>
+                <a href="#" class="nav-item" data-page="schedule"><i class="ri-calendar-event-line"></i> 스케줄 설정</a>
+                <a href="#" class="nav-item" data-page="settings"><i class="ri-settings-4-line"></i> 환경 설정</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Dashboard Page -->
+            <div id="page-dashboard" class="page-section active">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">대시보드</h1>
+                        <p class="page-subtitle">모든 장비의 전원 상태를 한눈에 모니터링하세요.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button id="btn-scan" class="btn btn-outline"
+                            style="color: var(--text-primary); border-color: var(--border-color);"
+                            onclick="scanDevices()">
+                            <i class="ri-refresh-line"></i> 현재 상태 스캔
+                        </button>
+                        <button class="btn btn-primary" onclick="toggleAllPower(true)"><i class="ri-power-line"></i> 일괄
+                            켜기</button>
+                        <button class="btn btn-danger" onclick="toggleAllPower(false)"><i class="ri-shut-down-line"></i>
+                            일괄 끄기</button>
+                    </div>
+                </header>
+
+                <!-- Stats -->
+                <section class="stats-grid">
+                    <div class="stat-card" onclick="navigateToType('pc')" style="cursor: pointer;">
+                        <div class="stat-icon pc"><i class="ri-computer-fill"></i></div>
+                        <div class="stat-info">
+                            <h3>작동 중인 컴퓨터</h3>
+                            <p class="stat-value" id="stat-pc-val">0 <span class="stat-total" id="stat-pc-total">/
+                                    0</span></p>
+                        </div>
+                    </div>
+                    <div class="stat-card" onclick="navigateToType('projector')" style="cursor: pointer;">
+                        <div class="stat-icon projector"><i class="ri-projector-fill"></i></div>
+                        <div class="stat-info">
+                            <h3>작동 중인 프로젝터</h3>
+                            <p class="stat-value" id="stat-pj-val">0 <span class="stat-total" id="stat-pj-total">/
+                                    0</span></p>
+                        </div>
+                    </div>
+
+                    <!-- New Schedule Summary Card -->
+                    <div class="stat-card schedule-summary-card"
+                        onclick="document.querySelector('[data-page=schedule]').click()" style="cursor: pointer;">
+                        <div class="stat-icon energy"
+                            style="background-color: rgba(245, 158, 11, 0.15); color: #f59e0b;"><i
+                                class="ri-calendar-check-fill"></i></div>
+                        <div class="stat-info" style="width: 100%;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <h3>오늘의 스케줄</h3>
+                                <span id="stat-sch-active" class="badge badge-active"
+                                    style="font-size: 0.65rem; display: none;"></span>
+                            </div>
+                            <div class="next-event"
+                                style="margin-top: 0.5rem; background: var(--card-hover); padding: 0.5rem; border-radius: 0.375rem; border: 1px solid var(--border-color);">
+                                <div id="stat-sch-next-label"
+                                    style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.25rem;">
+                                    다가오는 일정 없음</div>
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <strong id="stat-sch-next-name" style="font-size: 0.9rem;">-</strong>
+                                    <span id="stat-sch-next-time"
+                                        style="color: var(--danger-color); font-weight: 600; font-size: 0.9rem;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Device Controls Options -->
+                <div class="view-controls" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="view-tabs">
+                        <button class="view-tab active" onclick="switchView('room')"><i class="ri-layout-grid-fill"></i>
+                            콘텐츠별 보기</button>
+                        <button class="view-tab" onclick="switchView('type')"><i class="ri-list-check"></i> 장비 종류별
+                            보기</button>
+                    </div>
+                </div>
+
+                <!-- Device List Container -->
+                <div id="dashboard-content">
+                    <!-- Content will be injected by JS depending on the selected view -->
+                </div>
+            </div>
+
+            <!-- Computers Page -->
+            <div id="page-computers" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">컴퓨터 관리</h1>
+                        <p class="page-subtitle">네트워크에 연결된 PC 장비들을 상세 조회하고 관리합니다.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-danger"
+                            onclick="if(confirm('모든 PC 장비를 정말 삭제하시겠습니까? 관련 스케줄 등에서 오류가 발생할 수 있습니다.')) deleteAllDevices('pc');"><i
+                                class="ri-delete-bin-line"></i> 전체 지우기</button>
+                        <button class="btn btn-primary" onclick="openDeviceModal('pc')"><i class="ri-add-line"></i> PC
+                            수동 등록</button>
+                    </div>
+                </header>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>상태</th>
+                                <th>PC 이름</th>
+                                <th>할당 콘텐츠</th>
+                                <th>IP 주소</th>
+                                <th>MAC 주소</th>
+                                <th>WOL 지원</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Projectors Page -->
+            <div id="page-projectors" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">프로젝터 관리</h1>
+                        <p class="page-subtitle">PJLink 기반 프로젝터 장비의 상태와 포트 정보를 관리합니다.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-danger"
+                            onclick="if(confirm('모든 프로젝터 장비를 정말 삭제하시겠습니까? 관련 스케줄 등에서 오류가 발생할 수 있습니다.')) deleteAllDevices('projector');"><i
+                                class="ri-delete-bin-line"></i> 전체 지우기</button>
+                        <button class="btn btn-primary" onclick="openDeviceModal('projector')"><i
+                                class="ri-add-line"></i> 프로젝터 등록</button>
+                    </div>
+                </header>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>상태</th>
+                                <th>프로젝터 이름</th>
+                                <th>할당 콘텐츠</th>
+                                <th>API / 통신 IP</th>
+                                <th>PJLink 포트</th>
+                                <th>램프 상태</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="page-schedule" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">콘텐츠 스케줄 관리</h1>
+                        <p class="page-subtitle">콘텐츠별로 운영 시간을 설정하면 장비 특성에 맞춰 자동 전원 제어가 실행됩니다.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openScheduleModal()"><i class="ri-add-line"></i> 새 스케줄
+                        등록</button>
+                </header>
+
+                <div class="schedule-grid" id="scheduleGrid">
+                    <!-- Schedule Cards will be injected dynamically -->
+                </div>
+            </div>
+
+            <div id="page-settings" class="page-section" style="display: none;">
+                <header class="top-header">
+                    <div>
+                        <h1 class="page-title">환경 설정</h1>
+                        <p class="page-subtitle">시스템 네트워크, API 포트 및 데이터베이스 설정을 관리합니다.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-outline" style="color: var(--text-secondary);"
+                            onclick="resetSettings()"><i class="ri-refresh-line"></i> 초기화</button>
+                        <button class="btn btn-primary" onclick="saveSettings()"><i class="ri-save-line"></i> 설정
+                            저장</button>
+                    </div>
+                </header>
+
+                <div class="settings-grid">
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h3><i class="ri-server-line"></i> 서버 네트워크 설정</h3>
+                        </div>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>기본 브로드캐스트 IP (WOL 타겟)</label>
+                                <input type="text" id="settingsBroadcastIp" class="form-input" value="192.168.1.255">
+                                <span class="form-hint">네트워크 서브넷 브로드캐스트 주소를 입력하세요.</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Ping 테스트 주기</label>
+                                <select class="form-select">
+                                    <option>30초</option>
+                                    <option selected>1분</option>
+                                    <option>5분</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>기본 PJLink 암호</label>
+                                <input type="password" class="form-input" value="12345678">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h3><i class="ri-database-2-line"></i> 데이터베이스 & 시스템</h3>
+                        </div>
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>DB 파일 경로</label>
+                                <input type="text" class="form-input" value="./database/powerctrl.sqlite3" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>API 수신 포트</label>
+                                <input type="number" id="settingsApiPort" class="form-input" value="3000">
+                            </div>
+                            <div class="form-group"
+                                style="flex-direction: row; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <label style="margin-bottom: 0;">스케줄러 활성화</label>
+                                    <span class="form-hint">서버의 자동 동작 시스템을 켭니다.</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="globalSchedulerToggle" onchange="toggleGlobalScheduler(this.checked)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <div class="settings-card-header">
+                            <h3><i class="ri-brush-line"></i> 화면 & UI 설정</h3>
+                        </div>
+                        <div class="settings-form">
+                            <div class="form-group"
+                                style="flex-direction: row; align-items: center; justify-content: space-between;">
+                                <div>
+                                    <label style="margin-bottom: 0;">다크 모드 (Dark Mode)</label>
+                                    <span class="form-hint">어두운 화면 테마를 사용합니다.</span>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="themeToggle" onchange="toggleTheme(this.checked)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+    <!-- Device Edit/Add Modal -->
+    <div id="deviceModal" class="modal"
+        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content"
+            style="background-color: var(--card-bg); margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 500px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="modalTitle" style="color: var(--text-color);">장비 추가/수정</h2>
+                <span class="close" onclick="closeDeviceModal()"
+                    style="color: var(--text-secondary); font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            </div>
+            <form id="deviceForm" onsubmit="saveDevice(event)">
+                <input type="hidden" id="deviceId">
+                <input type="hidden" id="deviceType">
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">장비 이름</label>
+                    <input type="text" id="deviceName" class="form-input" required
+                        style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">할당 콘텐츠 (방)</label>
+                    <select id="deviceRoom" class="form-select" style="width: 100%; box-sizing: border-box;">
+                        <!-- Options dynamically injected from schedules -->
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">IP 주소</label>
+                    <input type="text" id="deviceIp" class="form-input" required
+                        style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <div class="form-group" id="macInputGroup" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">MAC 주소 / 포트</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="deviceMac" class="form-input" required
+                            style="flex: 1; box-sizing: border-box;">
+                        <button type="button" class="btn btn-outline" onclick="findMac()"
+                            style="white-space: nowrap; padding: 0.5rem 0.75rem;"><i class="ri-search-line"></i>
+                            검색</button>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; display: block;">*
+                        IP 입력 후 포커스를 벗어나면 자동으로 MAC을 검색합니다. 수동 검색도 가능합니다.</span>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeDeviceModal()"
+                        style="color: var(--text-secondary);">취소</button>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Schedule Modal -->
+    <div id="scheduleModal" class="modal"
+        style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content"
+            style="background-color: var(--card-bg); margin: 10% auto; padding: 20px; border: 1px solid var(--border-color); width: 80%; max-width: 400px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: var(--text-color);">새 콘텐츠(실) 스케줄 추가</h2>
+                <span class="close" onclick="closeScheduleModal()"
+                    style="color: var(--text-secondary); font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            </div>
+            <form id="scheduleForm" onsubmit="createSchedule(event)">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; color: var(--text-color);">콘텐츠 (방) 이름</label>
+                    <input type="text" id="newScheduleName" class="form-input" required placeholder="예: 3 강의실 - 특별반"
+                        style="width: 100%; box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn btn-outline" onclick="closeScheduleModal()"
+                        style="color: var(--text-secondary);">취소</button>
+                    <button type="submit" class="btn btn-primary">추가</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" data-page="dashboard"><i class="ri-dashboard-line"></i><span>대시보드</span></a>
+        <a href="#" class="nav-item" data-page="computers"><i class="ri-computer-line"></i><span>컴퓨터</span></a>
+        <a href="#" class="nav-item" data-page="projectors"><i class="ri-projector-line"></i><span>프로젝터</span></a>
+        <a href="#" class="nav-item" data-page="schedule"><i class="ri-calendar-event-line"></i><span>스케줄</span></a>
+        <a href="#" class="nav-item" data-page="settings"><i class="ri-settings-4-line"></i><span>설정</span></a>
+    </nav>
+
+    <script>
+// State Variable
+let devices = [];
+let schedulesData = [];
+
+async function fetchDevices() {
+    try {
+        const response = await fetch('/api/devices');
+        devices = await response.json();
+
+        // Ensure MAC is optional for projectors when rendering/saving
+        devices.forEach(d => {
+            if (d.type === 'projector') d.mac = d.mac || 'N/A';
+        });
+
+        renderDevices(currentView);
+        renderManagementTables();
+        updateStats();
+    } catch (e) {
+        console.error("Failed to fetch devices:", e);
+    }
+}
+
+// Initialize UI
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load saved theme
+    const savedTheme = localStorage.getItem('powerctrl_theme');
+    if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) themeToggle.checked = true;
+    }
+
+    initNavigation();
+    await fetchSettings();
+    await fetchSchedules();
+    await fetchDevices();
+
+    // Start live hardware polling every 5 seconds
+    setInterval(pollDeviceStatus, 5000);
+});
+
+async function pollDeviceStatus() {
+    try {
+        const response = await fetch('/api/devices');
+        devices = await response.json();
+
+        devices.forEach(d => {
+            if (d.type === 'projector') d.mac = d.mac || 'N/A';
+        });
+
+        // Re-render UI without resetting modals or scroll position
+        renderDevices(currentView);
+        renderManagementTables();
+        updateStats();
+    } catch (e) {
+        console.error("Live poll failed", e);
+    }
+}
+
+async function scanDevices() {
+    const btn = document.getElementById('btn-scan');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> 스캔 중...';
+    }
+
+    try {
+        await fetch('/api/devices/scan', { method: 'POST' });
+        await fetchDevices(); // Re-fetch the newly updated devices
+    } catch (e) {
+        console.error("Manual scan failed", e);
+    }
+
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="ri-refresh-line"></i> 현재 상태 스캔';
+    }
+}
+
+function toggleTheme(isDark) {
+    if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('powerctrl_theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('powerctrl_theme', 'light');
+    }
+}
+
+async function fetchSettings() {
+    try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        
+        const globalToggle = document.getElementById('globalSchedulerToggle');
+        if (globalToggle) {
+            globalToggle.checked = data.schedulerEnabled;
+        }
+
+        const apiPortInput = document.getElementById('settingsApiPort');
+        if (apiPortInput && data.activePort) {
+            apiPortInput.value = data.activePort;
+        }
+
+        const broadcastIpInput = document.getElementById('settingsBroadcastIp');
+        if (broadcastIpInput && data.broadcastIp) {
+            broadcastIpInput.value = data.broadcastIp;
+        }
+    } catch (e) {
+        console.error("Failed to load settings:", e);
+    }
+}
+
+async function saveSettings() {
+    const globalToggle = document.getElementById('globalSchedulerToggle');
+    const apiPortInput = document.getElementById('settingsApiPort');
+    const broadcastIpInput = document.getElementById('settingsBroadcastIp');
+    
+    if (!globalToggle || !apiPortInput || !broadcastIpInput) return;
+    
+    const payload = {
+        schedulerEnabled: globalToggle.checked,
+        preferredPort: parseInt(apiPortInput.value) || 8080,
+        broadcastIp: broadcastIpInput.value.trim() || "192.168.1.255"
+    };
+
+    try {
+        const res = await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) throw new Error("Settings save failed");
+        
+        const data = await res.json();
+        if (data.needsRestart) {
+            alert("포트 설정이 변경되어 서버를 자동으로 재시작합니다.\n브라우저 주소창의 포트 번호를 새 번호로 변경하여 다시 접속해 주세요.");
+            // UI could redirect, but since we don't know the exact new IP if it runs remotely, user has to change URL
+        } else {
+            alert("환경 설정이 성공적으로 저장되었습니다.");
+        }
+    } catch (e) {
+        console.error("Failed to save settings:", e);
+        alert("설정 저장에 실패했습니다.");
+    }
+}
+
+async function toggleGlobalScheduler(enabled) {
+    // Keep this function working for the direct toggle button, just trigger saveSettings indirectly
+    await saveSettings();
+}
+
+function initNavigation() {
+    const navItems = document.querySelectorAll('.nav-item');
+    const pages = document.querySelectorAll('.page-section');
+
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetPageId = item.getAttribute('data-page');
+
+            // Remove active from all nav items globally
+            navItems.forEach(nav => nav.classList.remove('active'));
+
+            // Add active to both top and bottom nav items pointing to the same page
+            document.querySelectorAll(`.nav-item[data-page="${targetPageId}"]`).forEach(el => {
+                el.classList.add('active');
+            });
+
+            // Hide all pages
+            pages.forEach(page => {
+                page.style.display = 'none';
+                page.classList.remove('active');
+            });
+
+            // Show selected page
+            const targetPage = document.getElementById(`page-${targetPageId}`);
+            if (targetPage) {
+                targetPage.style.display = 'block';
+                // Trigger reflow to restart animation
+                void targetPage.offsetWidth;
+                targetPage.classList.add('active');
+            }
+        });
+    });
+}
+
+// Schedule and Settings Handlers
+async function fetchSchedules() {
+    try {
+        const res = await fetch('/api/schedules');
+        const schedules = await res.json() || [];
+        schedulesData = schedules;
+
+        // Render Schedule Cards
+        const grid = document.getElementById('scheduleGrid');
+        if (grid) {
+            grid.innerHTML = '';
+            schedules.forEach(s => {
+                const numDevices = devices.filter(d => d.room === s.room).length;
+                const cardHTML = `
+                    <div class="schedule-card">
+                        <div class="schedule-header">
+                            <div class="schedule-title" style="flex: 1; padding-right: 15px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i class="ri-building-4-line"></i>
+                                    <input type="text" id="sch_name_${s.room}" value="${s.name}" class="form-input" style="background: transparent; border: 1px solid transparent; border-bottom: 1px dashed var(--border-color); font-size: 1.1rem; font-weight: bold; padding: 2px 4px; box-sizing: border-box; width: 100%;">
+                                </div>
+                            </div>
+                            <div class="schedule-toggle" style="display: flex; align-items: center; gap: 10px;">
+                                <span class="badge ${s.isActive ? 'badge-active' : ''}">${s.isActive ? '활성' : '비활성'}</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="sch_active_${s.room}" ${s.isActive ? 'checked' : ''} onchange="saveSchedule('${s.room}', true)">
+                                    <span class="slider round"></span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="schedule-settings">
+                            <div class="setting-group">
+                                <h4 class="setting-label">운영 시간 설정</h4>
+                                <div class="time-inputs">
+                                    <div class="time-field">
+                                        <span>시작 (ON)</span>
+                                        <input type="time" id="sch_start_${s.room}" value="${s.startTime}" class="time-picker">
+                                    </div>
+                                    <i class="ri-arrow-right-line time-divider"></i>
+                                    <div class="time-field">
+                                        <span>종료 (OFF)</span>
+                                        <input type="time" id="sch_end_${s.room}" value="${s.endTime}" class="time-picker">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h4 class="setting-label">전원 켜기(ON) 제어 순서</h4>
+                                <div class="sequence-box">
+                                    <div class="step-badge projector-step">1. 프로젝터 켜짐</div>
+                                    <div class="step-delay">
+                                        <span>대기: </span>
+                                        <input type="number" id="sch_pj_delay_${s.room}" value="${s.projectorDelay}" min="0" max="30" class="delay-input-sm">
+                                        <span>분</span>
+                                    </div>
+                                    <div class="step-badge pc-step">2. 컴퓨터(PC) 켜짐</div>
+                                </div>
+                            </div>
+
+                            <div class="setting-group">
+                                <h4 class="setting-label">전원 끄기(OFF) 제어 순서</h4>
+                                <div class="sequence-box">
+                                    <div class="step-badge pc-step">1. 컴퓨터(PC) 꺼짐</div>
+                                    <div class="step-delay">
+                                        <span>대기: </span>
+                                        <input type="number" id="sch_pc_delay_${s.room}" value="${s.pcDelay}" min="0" max="30" class="delay-input-sm">
+                                        <span>분</span>
+                                    </div>
+                                    <div class="step-badge projector-step">2. 프로젝터 꺼짐</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="schedule-actions" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="schedule-info"><i class="ri-information-line"></i> 연동 장비: 총 ${numDevices}대</span>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn btn-sm btn-danger" onclick="deleteSchedule('${s.room}')">삭제</button>
+                                <button class="btn btn-sm btn-primary" onclick="saveSchedule('${s.room}')">저장</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += cardHTML;
+            });
+        }
+
+        // Populate room dropdown in device modal
+        const roomSelect = document.getElementById('deviceRoom');
+        if (roomSelect) {
+            const currentVal = roomSelect.value;
+            roomSelect.innerHTML = '';
+            schedules.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.room;
+                opt.textContent = s.name || s.room;
+                roomSelect.appendChild(opt);
+            });
+            if (currentVal) roomSelect.value = currentVal;
+        }
+
+    } catch (e) {
+        console.error("Failed to load schedules", e);
+    }
+}
+
+async function saveSchedule(room, isSilent = false) {
+    const payload = {
+        room: room,
+        name: document.getElementById(`sch_name_${room}`).value,
+        isActive: document.getElementById(`sch_active_${room}`).checked,
+        startTime: document.getElementById(`sch_start_${room}`).value,
+        endTime: document.getElementById(`sch_end_${room}`).value,
+        projectorDelay: parseInt(document.getElementById(`sch_pj_delay_${room}`).value) || 0,
+        pcDelay: parseInt(document.getElementById(`sch_pc_delay_${room}`).value) || 0
+    };
+
+    try {
+        const res = await fetch(`/api/schedules/${room}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(await res.text());
+
+        if (!isSilent) {
+            alert("스케줄 설정이 저장되었습니다.");
+        }
+
+        // Refresh UI
+        await fetchSchedules();
+        renderDevices(currentView);
+    } catch (e) {
+        if (!isSilent) alert("저장 실패");
+        console.error(e);
+    }
+}
+
+async function deleteSchedule(room) {
+    if (!confirm("이 빈 스케줄/콘텐츠를 삭제하시겠습니까? (연결된 장비가 있다면 '등록되지 않은 콘텐츠'로 나타날 수 있습니다)")) return;
+
+    try {
+        const response = await fetch(`/api/schedules/${room}`, { method: 'DELETE' });
+        if (response.ok) {
+            await fetchSchedules();
+            renderDevices(currentView);
+        } else {
+            const err = await response.text();
+            alert("삭제 실패: " + err);
+        }
+    } catch (e) {
+        alert("통신 오류: " + e);
+    }
+}
+
+// Schedule Modal Handlers
+function openScheduleModal() {
+    document.getElementById('scheduleForm').reset();
+    document.getElementById('scheduleModal').style.display = 'block';
+}
+
+function closeScheduleModal() {
+    document.getElementById('scheduleModal').style.display = 'none';
+}
+
+async function createSchedule(event) {
+    event.preventDefault();
+    const name = document.getElementById('newScheduleName').value.trim();
+    if (!name) return;
+
+    // Auto-generate a unique room ID since users don't need to see it
+    const room = 'room_' + Date.now();
+
+    // Default schedule payload
+    const payload = {
+        room: room,
+        name: name,
+        isActive: true,
+        startTime: "09:00",
+        endTime: "18:00",
+        projectorDelay: 5,
+        pcDelay: 5
+    };
+
+    try {
+        const res = await fetch(`/api/schedules/${room}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(await res.text());
+
+        closeScheduleModal();
+        alert("새 콘텐츠 스케줄이 추가되었습니다.");
+        await fetchSchedules();
+    } catch (e) {
+        alert("스케줄 추가 실패");
+        console.error(e);
+    }
+}
+
+function saveSettings() {
+    // Save settings logic via API
+    alert("환경 설정이 성공적으로 저장되었습니다.");
+}
+
+function resetSettings() {
+    if (confirm('모든 사용자 설정을 초기화하시겠습니까?')) {
+        alert('설정이 초기화 되었습니다.');
+        // Reset form values to default
+        document.querySelector('#page-settings .form-input[value="192.168.1.255"]').value = "192.168.1.255";
+        document.querySelector('#page-settings .form-input[type="password"]').value = "12345678";
+    }
+}
+
+function renderDevices(viewMode = 'room') {
+    const container = document.getElementById('dashboard-content');
+    container.innerHTML = '';
+
+    if (viewMode === 'room') {
+        const rooms = [...new Set(devices.map(d => d.room))];
+
+        rooms.forEach(room => {
+            const roomDevices = devices.filter(d => d.room === room).sort((a, b) => {
+                if (a.isOn !== b.isOn) return a.isOn ? -1 : 1;
+                return a.name.localeCompare(b.name, 'ko-KR', { numeric: true });
+            });
+
+            // Search name from schedule
+            let roomName = room;
+            const sch = schedulesData.find(s => s.room === room);
+            if (sch && sch.name) roomName = sch.name;
+
+            const roomIcon = 'ri-building-4-line';
+
+            let scheduleInfo = '';
+            if (sch && sch.isActive) {
+                scheduleInfo = `<span class="room-schedule-badge"><i class="ri-time-line"></i> ${sch.startTime} ~ ${sch.endTime}</span>`;
+            }
+
+            let sectionHTML = `
+                <section class="device-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="${roomIcon}"></i> ${roomName} 장비
+                            ${scheduleInfo}
+                        </h2>
+                        <div class="room-actions">
+                            <button class="btn btn-sm" onclick="toggleGroup('room', '${room}', true)">전체 켜기</button>
+                            <button class="btn btn-sm btn-outline" onclick="toggleGroup('room', '${room}', false)">전체 끄기</button>
+                        </div>
+                    </div>
+                    <div class="device-grid">
+            `;
+
+            roomDevices.forEach(device => {
+                sectionHTML += generateCardHTML(device);
+            });
+
+            sectionHTML += `</div></section>`;
+            container.innerHTML += sectionHTML;
+        });
+
+    } else if (viewMode === 'type') {
+        // Group by Type
+        const types = [...new Set(devices.map(d => d.type))];
+
+        types.forEach(type => {
+            const typeDevices = devices.filter(d => d.type === type).sort((a, b) => {
+                if (a.isOn !== b.isOn) return a.isOn ? -1 : 1;
+                return a.name.localeCompare(b.name, 'ko-KR', { numeric: true });
+            });
+            const typeName = type === 'pc' ? '컴퓨터 (PC)' : '프로젝터';
+            const typeIcon = type === 'pc' ? 'ri-computer-line' : 'ri-projector-line';
+
+            let sectionHTML = `
+                <section class="device-section">
+                    <div class="section-header">
+                        <h2><i class="${typeIcon}"></i> ${typeName} 전체</h2>
+                        <div class="room-actions">
+                            <button class="btn btn-sm" onclick="toggleGroup('type', '${type}', true)">전체 켜기</button>
+                            <button class="btn btn-sm btn-outline" onclick="toggleGroup('type', '${type}', false)">전체 끄기</button>
+                        </div>
+                    </div>
+                    <div class="device-grid">
+            `;
+
+            typeDevices.forEach(device => {
+                sectionHTML += generateCardHTML(device);
+            });
+
+            sectionHTML += `</div></section>`;
+            container.innerHTML += sectionHTML;
+        });
+    }
+}
+
+function generateCardHTML(device) {
+    const iconClass = device.type === 'pc' ? 'ri-computer-line' : 'ri-projector-line';
+    const typeClass = device.type === 'projector' ? 'projector-type' : '';
+    const onClass = device.isOn ? 'is-on' : '';
+    const sch = schedulesData.find(s => s.room === device.room);
+
+    return `
+        <div class="device-card ${onClass}" id="card-${device.id}">
+            <div class="status-dot"></div>
+            <div class="device-header">
+                <div class="device-icon ${typeClass}"><i class="${iconClass}"></i></div>
+                <div class="device-title">
+                    <h4>${device.name}</h4>
+                    <span>${device.type.toUpperCase()} / ${sch ? sch.name : device.room}</span>
+                </div>
+            </div>
+            <div class="device-info">
+                <div class="info-row">
+                    <span>IP</span>
+                    <span class="info-val">${device.ip}</span>
+                </div>
+                <div class="info-row">
+                    <span>MAC</span>
+                    <span class="info-val">${device.mac}</span>
+                </div>
+            </div>
+            <div class="device-controls" style="justify-content: flex-end; align-items: center; width: 100%; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 0.5rem;">
+                <label class="switch">
+                    <input type="checkbox" id="toggle-${device.id}" onchange="toggleDeviceSwitch('${device.id}', this.checked)" ${device.isOn ? 'checked' : ''}>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    `;
+}
+
+let currentView = 'room';
+
+function switchView(viewType) {
+    currentView = viewType;
+
+    // Update tab classes
+    document.querySelectorAll('.view-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    const clickedTab = document.querySelector(`.view-tab[onclick="switchView('${viewType}')"]`);
+    if (clickedTab) clickedTab.classList.add('active');
+
+    renderDevices(currentView);
+}
+
+async function toggleDeviceSwitch(id, forceState) {
+    const card = document.getElementById(`card-${id}`);
+    const toggle = document.getElementById(`toggle-${id}`);
+
+    if (toggle) toggle.disabled = true; // prevent multi-clicks
+    if (card) card.style.opacity = '0.7';
+
+    try {
+        await fetch(`/api/devices/${id}/power`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isOn: forceState })
+        });
+        await fetchDevices();
+    } catch (e) {
+        console.error("Failed to toggle device:", e);
+        // revert toggle on failure
+        if (toggle) toggle.checked = !forceState;
+    } finally {
+        if (toggle) toggle.disabled = false;
+        if (card) card.style.opacity = '1';
+    }
+}
+
+async function toggleDevice(id, forceState) {
+    const card = document.getElementById(`card-${id}`);
+    if (card) card.style.opacity = '0.7';
+
+    try {
+        await fetch(`/api/devices/${id}/power`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isOn: forceState })
+        });
+        await fetchDevices();
+    } catch (e) {
+        console.error("Failed to toggle device:", e);
+    }
+
+    if (card) card.style.opacity = '1';
+}
+
+async function toggleGroup(groupType, groupValue, powerState) {
+    try {
+        await fetch(`/api/group/power`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groupType: groupType, groupValue: groupValue, isOn: powerState })
+        });
+        await fetchDevices();
+    } catch (e) {
+        console.error("Failed to toggle group:", e);
+    }
+}
+
+async function toggleAllPower(powerState) {
+    try {
+        await fetch(`/api/all/power`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isOn: powerState })
+        });
+        await fetchDevices();
+    } catch (e) {
+        console.error("Failed to toggle all devices:", e);
+    }
+}
+
+function updateStats() {
+    const pcCount = devices.filter(d => d.type === 'pc' && d.isOn).length;
+    const totalPc = devices.filter(d => d.type === 'pc').length;
+
+    const pjCount = devices.filter(d => d.type === 'projector' && d.isOn).length;
+    const totalPj = devices.filter(d => d.type === 'projector').length;
+
+    document.querySelector('.stat-card:nth-child(1) .stat-value').innerHTML = `${pcCount} <span class="stat-total">/ ${totalPc}</span>`;
+    document.querySelector('.stat-card:nth-child(2) .stat-value').innerHTML = `${pjCount} <span class="stat-total">/ ${totalPj}</span>`;
+}
+
+// Device CRUD Functions
+
+function openDeviceModal(type, id = null) {
+    const modal = document.getElementById('deviceModal');
+    const title = document.getElementById('modalTitle');
+    const macGroup = document.getElementById('macInputGroup');
+
+    document.getElementById('deviceType').value = type;
+    document.getElementById('deviceId').value = id || '';
+
+    // Only show MAC input for PCs
+    if (type === 'projector') {
+        macGroup.style.display = 'none';
+        document.getElementById('deviceMac').required = false;
+    } else {
+        macGroup.style.display = 'block';
+        document.getElementById('deviceMac').required = true;
+    }
+
+    if (id) {
+        title.innerText = type === 'pc' ? 'PC 장비 수정' : '프로젝터 수정';
+        const d = devices.find(x => x.id === id);
+        if (d) {
+            document.getElementById('deviceName').value = d.name;
+            document.getElementById('deviceRoom').value = d.room;
+            document.getElementById('deviceIp').value = d.ip;
+            document.getElementById('deviceMac').value = d.mac !== 'N/A' ? d.mac : '';
+        }
+    } else {
+        title.innerText = type === 'pc' ? 'PC 장비 추가' : '프로젝터 장비 추가';
+        document.getElementById('deviceForm').reset();
+    }
+
+    modal.style.display = 'block';
+}
+
+function closeDeviceModal() {
+    document.getElementById('deviceModal').style.display = 'none';
+}
+
+// Auto Fetch MAC on IP blur for PC
+document.getElementById('deviceIp').addEventListener('blur', async function () {
+    const type = document.getElementById('deviceType').value;
+    const ip = this.value.trim();
+    const macInput = document.getElementById('deviceMac');
+
+    if (type === 'pc' && ip && !macInput.value) {
+        // Automatically try to resolve MAC
+        try {
+            macInput.placeholder = "ARP 검색 중...";
+            const res = await fetch(`/api/arp?ip=${ip}`);
+            const data = await res.json();
+            if (data.success && data.mac) {
+                macInput.value = data.mac;
+            } else {
+                macInput.placeholder = "자동 검색 실패. 수동 입력 필요";
+            }
+        } catch (e) {
+            macInput.placeholder = "검색 오류";
+        }
+    }
+});
+
+async function findMac() {
+    const ip = document.getElementById('deviceIp').value;
+    if (!ip) {
+        alert("먼저 IP 주소를 입력해주세요.");
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/arp?ip=${ip}`);
+        const data = await res.json();
+        if (data.success && data.mac) {
+            document.getElementById('deviceMac').value = data.mac;
+        } else {
+            alert("네트워크에서 해당 IP의 MAC 주소를 찾을 수 없습니다. (장비가 켜져있는 상태에서 검색해야 ARP 테이블에 남습니다)");
+        }
+    } catch (e) {
+        alert("MAC 검색 중 오류가 발생했습니다.");
+    }
+}
+
+async function saveDevice(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('deviceId').value;
+    const isNew = !id;
+
+    const payload = {
+        id: isNew ? 'dev_' + Date.now() : id,
+        type: document.getElementById('deviceType').value,
+        name: document.getElementById('deviceName').value,
+        room: document.getElementById('deviceRoom').value,
+        ip: document.getElementById('deviceIp').value,
+        mac: document.getElementById('deviceMac').value,
+        isOn: false
+    };
+
+    try {
+        const url = isNew ? '/api/devices' : `/api/devices/${id}`;
+        const method = isNew ? 'POST' : 'PUT';
+
+        await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        closeDeviceModal();
+        await fetchDevices();
+        // optionally refresh tables if we are on the computer or projector page
+        renderManagementTables();
+    } catch (e) {
+        alert("장비 저장에 실패했습니다.");
+        console.error(e);
+    }
+}
+
+async function deleteDevice(id) {
+    if (!confirm("정말 이 장비를 삭제하시겠습니까?")) return;
+
+    try {
+        const response = await fetch(`/api/devices/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+            await fetchDevices();
+            renderManagementTables();
+            renderDevices(currentView);
+        } else {
+            const err = await response.text();
+            alert("삭제 실패: " + err);
+        }
+    } catch (e) {
+        alert("통신 오류: " + e);
+    }
+}
+
+async function deleteAllDevices(type) {
+    try {
+        const response = await fetch(`/api/devices?type=${type}`, { method: 'DELETE' });
+        if (response.ok) {
+            await fetchDevices();
+            renderManagementTables();
+            renderDevices(currentView);
+        } else {
+            const err = await response.text();
+            alert("전체 삭제 실패: " + err);
+        }
+    } catch (e) {
+        alert("통신 오류: " + e);
+    }
+}
+
+// Re-render PC/Projector Management tables dynamically
+function renderManagementTables() {
+    const pcTbody = document.querySelector('#page-computers tbody');
+    if (pcTbody) {
+        const pcList = devices.filter(d => d.type === 'pc').map(d => {
+            const sch = schedulesData.find(s => s.room === d.room);
+            const roomName = sch ? sch.name : d.room;
+            return { ...d, roomName };
+        }).sort((a, b) => {
+            if (a.isOn !== b.isOn) return a.isOn ? -1 : 1;
+            if (a.roomName !== b.roomName) return a.roomName.localeCompare(b.roomName, 'ko-KR');
+            return a.name.localeCompare(b.name, 'ko-KR', { numeric: true });
+        });
+
+        pcTbody.innerHTML = pcList.map(d => `
+            <tr>
+                <td><span class="status-indicator ${d.isOn ? 'status-on' : 'status-off'}"></span></td>
+                <td>${d.name}</td>
+                <td>${d.roomName}</td>
+                <td class="mono-text">${d.ip}</td>
+                <td class="mono-text">${d.mac}</td>
+                <td><span class="badge badge-success">지원</span></td>
+                <td>
+                    <button class="btn-icon" onclick="openDeviceModal('pc', '${d.id}')"><i class="ri-edit-line"></i></button>
+                    <button class="btn-icon text-danger" onclick="deleteDevice('${d.id}')"><i class="ri-delete-bin-line"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    const pjTbody = document.querySelector('#page-projectors tbody');
+    if (pjTbody) {
+        const pjList = devices.filter(d => d.type === 'projector').map(d => {
+            const sch = schedulesData.find(s => s.room === d.room);
+            const roomName = sch ? sch.name : d.room;
+            return { ...d, roomName };
+        }).sort((a, b) => {
+            if (a.isOn !== b.isOn) return a.isOn ? -1 : 1;
+            if (a.roomName !== b.roomName) return a.roomName.localeCompare(b.roomName, 'ko-KR');
+            return a.name.localeCompare(b.name, 'ko-KR', { numeric: true });
+        });
+
+        pjTbody.innerHTML = pjList.map(d => `
+            <tr>
+                <td><span class="status-indicator ${d.isOn ? 'status-on' : 'status-off'}"></span></td>
+                <td>${d.name}</td>
+                <td>${d.roomName}</td>
+                <td class="mono-text">${d.ip}</td>
+                <td class="mono-text">${d.mac}</td>
+                <td><span class="badge ${d.isOn ? 'badge-success' : 'badge-warning'}">${d.isOn ? '정상' : '대기'}</span></td>
+                <td>
+                    <button class="btn-icon" onclick="openDeviceModal('projector', '${d.id}')"><i class="ri-edit-line"></i></button>
+                    <button class="btn-icon text-danger" onclick="deleteDevice('${d.id}')"><i class="ri-delete-bin-line"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+}
+
+function updateStats() {
+    const pcs = devices.filter(d => d.type === 'pc');
+    const pjs = devices.filter(d => d.type === 'projector');
+
+    const pcOn = pcs.filter(d => d.isOn).length;
+    const pjOn = pjs.filter(d => d.isOn).length;
+
+    const elPcVal = document.getElementById('stat-pc-val');
+    if (elPcVal) elPcVal.innerHTML = `${pcOn} <span class="stat-total" id="stat-pc-total">/ ${pcs.length}</span>`;
+
+    const elPjVal = document.getElementById('stat-pj-val');
+    if (elPjVal) elPjVal.innerHTML = `${pjOn} <span class="stat-total" id="stat-pj-total">/ ${pjs.length}</span>`;
+
+    const activeSchedules = schedulesData.filter(s => s.isActive);
+    const elSchActive = document.getElementById('stat-sch-active');
+    if (elSchActive) {
+        if (activeSchedules.length > 0) {
+            elSchActive.style.display = 'inline-block';
+            elSchActive.innerText = `${activeSchedules.length}개 활성`;
+        } else {
+            elSchActive.style.display = 'none';
+        }
+    }
+
+    // Find next schedule
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    let nextEvent = null;
+    let minDiff = 24 * 60; // Max possible diff is 24 hours
+
+    activeSchedules.forEach(s => {
+        // Parse Start Time
+        const [startH, startM] = s.startTime.split(':').map(Number);
+        const startTotal = startH * 60 + startM;
+        let diffStart = startTotal - currentMinutes;
+        if (diffStart < 0) diffStart += 24 * 60; // Next day
+        if (diffStart < minDiff && diffStart !== 0) {
+            minDiff = diffStart;
+            nextEvent = { name: s.name || s.room, type: '켜기(ON)', time: s.startTime, isStart: true };
+        }
+
+        // Parse End Time
+        const [endH, endM] = s.endTime.split(':').map(Number);
+        const endTotal = endH * 60 + endM;
+        let diffEnd = endTotal - currentMinutes;
+        if (diffEnd < 0) diffEnd += 24 * 60;
+        if (diffEnd < minDiff && diffEnd !== 0) {
+            minDiff = diffEnd;
+            nextEvent = { name: s.name || s.room, type: '종료(OFF)', time: s.endTime, isStart: false };
+        }
+    });
+
+    const elNextLabel = document.getElementById('stat-sch-next-label');
+    const elNextName = document.getElementById('stat-sch-next-name');
+    const elNextTime = document.getElementById('stat-sch-next-time');
+
+    if (nextEvent) {
+        if (elNextLabel) elNextLabel.innerText = `다가오는 예약 (${nextEvent.type})`;
+        if (elNextName) elNextName.innerText = nextEvent.name;
+        if (elNextTime) {
+            elNextTime.innerText = nextEvent.time;
+            elNextTime.style.color = nextEvent.isStart ? 'var(--primary-color)' : 'var(--danger-color)';
+        }
+    } else {
+        if (elNextLabel) elNextLabel.innerText = '다가오는 일정 없음';
+        if (elNextName) elNextName.innerText = '-';
+        if (elNextTime) {
+            elNextTime.innerText = '-';
+            elNextTime.style.color = 'var(--text-secondary)';
+        }
+    }
+}
+
+function navigateToType(type) {
+    // Navigate to dashboard
+    document.querySelector('.nav-item[data-page="dashboard"]').click();
+
+    // Switch to 'type' view
+    switchView('type');
+
+    // Smooth scroll to target section
+    setTimeout(() => {
+        const headerText = type === 'pc' ? '컴퓨터 (PC) 전체' : '프로젝터 전체';
+        const headers = document.querySelectorAll('.section-header h2');
+        for (const h of headers) {
+            if (h.innerText.includes(headerText)) {
+                h.closest('.device-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                break;
+            }
+        }
+    }, 150);
+}
+
+</script>
+</body>
+
+</html>
